@@ -2,8 +2,13 @@
 
 public sealed class ItemQuery
 {
-    public IEnumerable<ItemDto> GetItems()
+    public IEnumerable<ItemDto> GetItems([Service]ApplicationDbContext dbContext)
     {
-        throw new NotImplementedException();
+        return dbContext.Items
+            .Select(i => new ItemDto
+            {
+                Id = i.Id,
+                Name = i.Name
+            });
     }
 }
