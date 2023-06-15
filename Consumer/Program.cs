@@ -28,6 +28,7 @@ builder.Services.AddSingleton(sp =>
 });
 
 builder.Services.AddHostedService<MessageConsumer>();
+builder.Services.AddMediatR(c => c.RegisterServicesFromAssemblyContaining<Program>());
 
 var app = builder.Build();
 

@@ -1,6 +1,7 @@
 ﻿using Confluent.Kafka;
 using Confluent.Kafka.Admin;
 using Consumer.Messages;
+using MediatR;
 
 namespace Consumer;
 
@@ -9,35 +10,36 @@ public sealed class MessageConsumer : BackgroundService
     private readonly IConsumer<Ignore, IMessage> _consumer;
     private readonly IAdminClient _adminClient;
     private readonly ILogger<MessageConsumer> _logger;
+    private readonly IMediator _mediator;
 
-    public MessageConsumer(IConsumer<Ignore, IMessage> consumer, IAdminClient adminClient, ILogger<MessageConsumer> logger)
+    public MessageConsumer(IConsumer<Ignore, IMessage> consumer, IAdminClient adminClient, ILogger<MessageConsumer> logger, IMediator mediator)
     {
         _consumer = consumer;
         _adminClient = adminClient;
         _logger = logger;
+        _mediator = mediator;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        try
-        {
-            await CreateTopicAsync(stoppingToken);
-    
-            _consumer.Subscribe("topic");
+        await CreateTopicAsync(stoppingToken);
 
-            while (!stoppingToken.IsCancellationRequested)
+        _consumer.Subscribe("topic");
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
             {
                 var consumeResult = _consumer.Consume(stoppingToken);
 
                 var message = consumeResult.Message.Value;
-
-                Console.WriteLine(message);
+                
+                await _mediator.Send(message, stoppingToken);
             }
-        }
-        catch (Exception e)
-        {
-            _consumer.Close();
-            throw;
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error while consuming message");
+            }
         }
     }
     
