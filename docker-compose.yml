@@ -20,20 +20,21 @@ services:
     networks:
       - kafka-network
 
-  kafka:
+  kafka: # create topic using following command: "kafka-topics --bootstrap-server kafka:9092 --create --topic topic --config retention.ms=10000"
     image: confluentinc/cp-kafka:6.2.0
     hostname: kafka
     ports:
       - 9092:9092
     environment:
       - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
-      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092
+      - KAFKA_LISTENER_SECURITY_PROTOCOL_MAP=PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
       - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
     depends_on:
       - zookeeper
     networks:
       - kafka-network
-
+      
 networks:
   kafka-network:
     driver: bridge

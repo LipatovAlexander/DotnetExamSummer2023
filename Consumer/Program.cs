@@ -15,12 +15,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 builder.Services.AddSingleton(sp =>
 {
-    var config = new AdminClientConfig { BootstrapServers = "localhost:9092" };
-    return new AdminClientBuilder(config).Build();
-});
-
-builder.Services.AddSingleton(sp =>
-{
     var config = new ConsumerConfig
     {
         BootstrapServers = "localhost:9092",
