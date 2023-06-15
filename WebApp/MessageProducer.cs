@@ -3,28 +3,28 @@ using WebApp.Messages;
 
 namespace WebApp;
 
-public interface IProducer
+public interface IMessageProducer
 {
-    Task<bool> ProduceMessageAsync<TMessage>(TMessage message) where TMessage : IMessage;
+    Task<bool> ProduceAsync<TMessage>(TMessage message) where TMessage : IMessage;
 }
 
-public sealed class Producer : IProducer
+public sealed class MessageProducer : IMessageProducer
 {
     private readonly IProducer<Null, IMessage> _producer;
-    private readonly ILogger<Producer> _logger;
+    private readonly ILogger<MessageProducer> _logger;
 
-    public Producer(IProducer<Null, IMessage> producer, ILogger<Producer> logger)
+    public MessageProducer(IProducer<Null, IMessage> producer, ILogger<MessageProducer> logger)
     {
         _producer = producer;
         _logger = logger;
     }
 
-    public async Task<bool> ProduceMessageAsync<TMessage>(TMessage message) where TMessage : IMessage
+    public async Task<bool> ProduceAsync<TMessage>(TMessage message) where TMessage : IMessage
     {
         var kafkaMessage = new Message<Null, IMessage> { Value = message };
         try
         {
-            await _producer.ProduceAsync("messages", kafkaMessage);
+            await _producer.ProduceAsync("topic", kafkaMessage);
             return true;
         }
         catch (ProduceException<Null, IMessage> e)

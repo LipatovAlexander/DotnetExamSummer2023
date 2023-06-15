@@ -6,6 +6,8 @@ using WebApp.Messages;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddHealthChecks();
+
 builder.Services.AddGraphQLServer()
     .AddQueryType<ItemQuery>()
     .AddMutationType<ItemMutation>();
@@ -19,11 +21,13 @@ builder.Services.AddSingleton(sp =>
         .Build();
 });
 
-builder.Services.AddSingleton<IProducer, Producer>();
+builder.Services.AddSingleton<IMessageProducer, MessageProducer>();
 
 var app = builder.Build();
 
 app.MapBananaCakePop();
 app.MapGraphQL();
+
+app.MapHealthChecks("/healthz");
 
 app.Run();

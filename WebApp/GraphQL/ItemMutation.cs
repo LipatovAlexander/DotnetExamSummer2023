@@ -4,21 +4,21 @@ namespace WebApp.GraphQL;
 
 public sealed class ItemMutation
 {
-    public async Task<bool> AddItem([Service]IProducer producer, string name)
+    public async Task<bool> AddItem([Service]IMessageProducer messageProducer, string name)
     {
         var addItem = new AddItem(name);
-        return await producer.ProduceMessageAsync(addItem);
+        return await messageProducer.ProduceAsync(addItem);
     }
 
-    public async Task<bool> DeleteItem([Service]IProducer producer, int id)
+    public async Task<bool> DeleteItem([Service]IMessageProducer messageProducer, int id)
     {
         var deleteItem = new DeleteItem(id);
-        return await producer.ProduceMessageAsync(deleteItem);
+        return await messageProducer.ProduceAsync(deleteItem);
     }
 
-    public async Task<bool> EditItem([Service]IProducer producer, int id, string name)
+    public async Task<bool> EditItem([Service]IMessageProducer messageProducer, int id, string name)
     {
         var editItem = new EditItem(id, name);
-        return await producer.ProduceMessageAsync(editItem);
+        return await messageProducer.ProduceAsync(editItem);
     }
 }
