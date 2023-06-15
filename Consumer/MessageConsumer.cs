@@ -10,14 +10,14 @@ public sealed class MessageConsumer : BackgroundService
     private readonly IConsumer<Ignore, IMessage> _consumer;
     private readonly IAdminClient _adminClient;
     private readonly ILogger<MessageConsumer> _logger;
-    private readonly IMediator _mediator;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
 
-    public MessageConsumer(IConsumer<Ignore, IMessage> consumer, IAdminClient adminClient, ILogger<MessageConsumer> logger, IMediator mediator)
+    public MessageConsumer(IConsumer<Ignore, IMessage> consumer, IAdminClient adminClient, ILogger<MessageConsumer> logger, IServiceScopeFactory serviceScopeFactory)
     {
         _consumer = consumer;
         _adminClient = adminClient;
         _logger = logger;
-        _mediator = mediator;
+        _serviceScopeFactory = serviceScopeFactory;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -28,17 +28,28 @@ public sealed class MessageConsumer : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
+            IMessage message;
+            
             try
             {
                 var consumeResult = _consumer.Consume(stoppingToken);
-
-                var message = consumeResult.Message.Value;
-                
-                await _mediator.Send(message, stoppingToken);
+                message = consumeResult.Message.Value;
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
-                _logger.LogError(e, "Error while consuming message");
+                _logger.LogError(ex, "Message failed during consuming");
+                break;
+            }
+
+            try
+            {
+                using var scope = _serviceScopeFactory.CreateScope();
+                var mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+                await mediator.Send(message, stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Message failed during processing");
             }
         }
     }

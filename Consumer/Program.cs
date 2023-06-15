@@ -2,10 +2,16 @@ using Confluent.Kafka;
 using Consumer;
 using Consumer.Configurations;
 using Consumer.Messages;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddHealthChecks();
+
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    options.UseNpgsql("Host=localhost;Port=54321;Username=postgres;Password=postgrespw;Database=items");
+});
 
 builder.Services.AddSingleton(sp =>
 {
