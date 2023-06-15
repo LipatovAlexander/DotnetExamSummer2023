@@ -1,3 +1,3 @@
 ﻿namespace WebApp.Messages;
 
-public sealed record AddItem(string Name);
+public sealed record AddItem(string Name) : IMessage;
